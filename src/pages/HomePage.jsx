@@ -1,19 +1,26 @@
-import React, { useState, useEffect, useContext } from 'react'; // Agrega useContext
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios'; // Agrega axios
+import axios from 'axios';
 import CategoryFilter from '../components/CategoryFilter';
 import UserProfile from '../components/UserProfile';
-import { CartContext } from '../context/CartContext'; // Importa CartContext si decides añadir "Agregar al Carrito" aquí
+import { CartContext } from '../context/CartContext';
 
-// Importa los CSS necesarios
 import '../assets/css/banner.css';
 import '../assets/css/productos.css';
 
-// Ya no importamos los productos locales
-// import { productos } from '../data/productos';
+// --- FUNCIÓN HELPER (LA MISMA QUE ANTES) ---
+const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+        return process.env.PUBLIC_URL + '/img/default.png'; 
+    }
+    if (imagePath.startsWith('data:image/')) {
+        return imagePath;
+    }
+    return process.env.PUBLIC_URL + imagePath;
+};
 
-// Función para renderizar estrellas
-const renderStars = (rating) => {
+// --- FUNCIÓN HELPER (CORREGIDA) ---
+const renderStars = (rating = 0) => {
     const fullStars = Math.floor(rating);
     const emptyStars = 5 - fullStars;
     return '★'.repeat(fullStars) + '☆'.repeat(emptyStars);
@@ -30,20 +37,19 @@ const HomePage = () => {
     const [priceFilter, setPriceFilter] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     
-    // --- ESTADOS PARA DATOS DE LA API ---
-    const [allProducts, setAllProducts] = useState([]); // Guarda la lista original de la API
-    const [filteredProducts, setFilteredProducts] = useState([]); // Guarda los productos filtrados
+    const [allProducts, setAllProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- HOOK PARA CARGAR PRODUCTOS DESDE LA API ---
+    // ... (Hook useEffect para cargar productos, sin cambios) ...
     useEffect(() => {
         const fetchAllProductos = async () => {
             try {
                 setLoading(true);
                 const response = await axios.get('http://localhost:8080/api/productos');
-                setAllProducts(response.data); // Guarda la lista completa
-                setFilteredProducts(response.data); // Inicialmente muestra todos
+                setAllProducts(response.data);
+                setFilteredProducts(response.data);
                 setError(null);
             } catch (err) {
                 console.error("Error al cargar productos en Home:", err);
@@ -53,15 +59,15 @@ const HomePage = () => {
             }
         };
         fetchAllProductos();
-    }, []); // Se ejecuta solo una vez al cargar la página
+    }, []);
 
-    // --- HOOK PARA FILTRAR PRODUCTOS (AHORA USA EL ESTADO 'allProducts') ---
+    // ... (Hook useEffect para filtrar productos, sin cambios) ...
     useEffect(() => {
-        let tempProducts = [...allProducts]; // Empieza con la lista completa de la API
+        let tempProducts = [...allProducts];
 
         if (searchTerm) {
              tempProducts = tempProducts.filter(product =>
-                product.name.toLowerCase().includes(searchTerm.toLowerCase())
+                (product.name || '').toLowerCase().includes(searchTerm.toLowerCase()) // Protegido
             );
         }
         if (selectedCategory !== 'all') {
@@ -72,21 +78,21 @@ const HomePage = () => {
         if (priceFilter) {
             const [min, max] = priceFilter.split('-').map(str => str === '' ? undefined : Number(str));
              tempProducts = tempProducts.filter(product => {
+                const price = product.price || 0; // Protegido
                 if (max !== undefined) {
-                    return product.price >= min && product.price <= max;
+                    return price >= min && price <= max;
                 }
-                return product.price >= min;
+                return price >= min;
             });
         }
-        setFilteredProducts(tempProducts); // Actualiza la lista filtrada
+        setFilteredProducts(tempProducts);
 
-    }, [selectedCategory, priceFilter, searchTerm, allProducts]); // Depende de allProducts ahora
+    }, [selectedCategory, priceFilter, searchTerm, allProducts]);
 
     return (
         <div>
-            {/* --- Sección del Banner (sin cambios) --- */}
+            {/* --- Sección del Banner (con el arreglo de CSS en línea) --- */}
             <section className="banner py-5 bg-dark text-light">
-                 {/* ... (contenido del banner) ... */}
                  <div className="container">
                     <div className="row align-items-center">
                         <div className="col-md-6">
@@ -100,11 +106,14 @@ const HomePage = () => {
                             </div>
                             <Link to="/productos" className="btn btn-primary btn-lg animate-button">Explora nuestros productos</Link>
                         </div>
-                        <div className="col-md-6 text-center d-none d-md-block">
+                        {/* Esta es la columna de la imagen (con la corrección forzada) */}
+                        <div className="col-md-6 text-center">
                             <img
                                 src={process.env.PUBLIC_URL + "/img/banner2.png"}
                                 alt="Banner Gamer"
                                 className="img-fluid animate-img banner-img"
+                                // Estilo en línea para forzar la visualización
+                                style={{ display: 'block', margin: 'auto' }} 
                             />
                         </div>
                     </div>
@@ -146,7 +155,6 @@ const HomePage = () => {
                     </select>
                 </div>
                 
-                {/* --- RENDERIZADO DE PRODUCTOS ACTUALIZADO --- */}
                 {loading && <p className="text-center w-100">Cargando productos...</p>}
                 {error && <p className="text-center w-100" style={{color: 'red'}}>{error}</p>}
                 
@@ -155,17 +163,23 @@ const HomePage = () => {
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map(product => (
                                 <div className="card" key={product.code}>
-                                    {/* ¡LA CORRECCIÓN DE LA IMAGEN ESTÁ AQUÍ! */}
-                                    <img src={process.env.PUBLIC_URL + product.image} alt={product.name} />
+                                    
+                                    <img src={getImageUrl(product.image)} alt={product.name || 'Producto'} />
+                                    
                                     <div className="card-body">
-                                        <h6>{product.name}</h6>
+                                        <h6>{product.name || 'Producto sin nombre'}</h6>
                                         <div className="rating mb-2">
                                             <span className="stars">{renderStars(product.rating)}</span>
-                                            <span className="reviews">({product.reviews} reseñas)</span>
+                                            <span className="reviews">({product.reviews || 0} reseñas)</span>
                                         </div>
-                                        <p className="descripcion">{product.description.substring(0, 80)}...</p>
+                                        
+                                        {/* ✅ ¡ESTA ES LA CORRECCIÓN PRINCIPAL! */}
+                                        <p className="descripcion">
+                                            {(product.description || '').substring(0, 80)}...
+                                        </p>
                                     </div>
-                                    <div className="precio">${product.price.toLocaleString('es-CL')}</div>
+                                    {/* ✅ Protección para el precio */}
+                                    <div className="precio">${(product.price || 0).toLocaleString('es-CL')}</div>
                                     <Link to={`/producto/${product.code}`} className="btn btn-outline-light">
                                         Ver detalle
                                     </Link>

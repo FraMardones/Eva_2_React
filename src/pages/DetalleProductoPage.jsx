@@ -1,96 +1,107 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios'; // Importamos axios
+import axios from 'axios';
 import { CartContext } from '../context/CartContext';
-import '../assets/css/detalle-producto.css';
+import '../assets/css/detalle-producto.css'; 
 
+// --- Función Helper para la Imagen ---
+const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+        return process.env.PUBLIC_URL + '/img/default.png'; 
+    }
+    if (imagePath.startsWith('data:image/')) {
+        return imagePath;
+    }
+    return process.env.PUBLIC_URL + imagePath;
+};
 
+// --- Función Helper para Estrellas ---
+const renderStars = (rating = 0) => {
+    const fullStars = Math.floor(rating);
+    const emptyStars = 5 - fullStars;
+    return '★'.repeat(fullStars) + '☆'.repeat(emptyStars);
+};
 
 const DetalleProductoPage = () => {
-    const { id } = useParams(); // Obtiene el 'id' (código) de la URL
+    const { code } = useParams(); 
     const { addToCart } = useContext(CartContext);
-
-    // --- NUEVOS ESTADOS ---
-    const [producto, setProducto] = useState(null); // Un solo producto, o null
+    
+    const [producto, setProducto] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- NUEVO HOOK useEffect ---
-    // Se ejecuta cada vez que el 'id' (de la URL) cambia
     useEffect(() => {
         const fetchProducto = async () => {
             try {
                 setLoading(true);
-                // 1. Llama a la API con el ID específico
-                const response = await axios.get(`http://localhost:8080/api/productos/${id}`);
-                // 2. Guarda el producto encontrado en el estado
+                setError(null); // Limpia errores anteriores
+                const response = await axios.get(`http://localhost:8080/api/productos/${code}`);
                 setProducto(response.data);
-                setError(null);
+
             } catch (err) {
-                // 3. Si hay un error (ej. 404 Not Found)
                 console.error("Error al cargar el producto:", err);
-                setError("Producto no encontrado.");
-                setProducto(null);
+                
+                // --- AQUÍ ESTÁ LA MEJORA ---
+                // Revisa si el error es un 404
+                if (err.response && err.response.status === 404) {
+                    setError("Error 404: Producto no encontrado. Es posible que el servidor se haya reiniciado.");
+                } else {
+                    setError("No se pudo cargar el producto. Revisa la conexión con el servidor (API).");
+                }
             } finally {
-                // 4. Termina la carga
                 setLoading(false);
             }
         };
 
-        if (id) {
-            fetchProducto(); // Llama a la función solo si hay un id
-        }
+        fetchProducto();
+    }, [code]); 
 
-    }, [id]); // El array [id] asegura que esto se repita si el id cambia
+    // Muestra "Cargando..."
+    if (loading) {
+        return <h2 className="text-center py-5">Cargando producto...</h2>;
+    }
+
+    // Muestra el mensaje de error (ej: el 404)
+    if (error) {
+        return <h2 className="text-center py-5" style={{ color: 'red' }}>{error}</h2>;
+    }
+
+    // Muestra "No encontrado" si la API funcionó pero no devolvió nada
+    if (!producto) {
+         return <h2 className="text-center py-5">Producto no encontrado.</h2>;
+    }
 
     const handleAddToCart = () => {
         addToCart(producto);
         alert(`${producto.name} ha sido agregado al carrito.`);
     };
 
-    // --- MANEJO DE ESTADOS DE CARGA Y ERROR ---
-    if (loading) {
-        return <h2 className="text-center py-5">Cargando producto...</h2>;
-    }
-
-    if (error) {
-        return (
-            <div className="container py-5 text-center">
-                <h2 style={{ color: 'red' }}>{error}</h2>
-                <Link to="/productos" className="btn btn-primary">Volver a Productos</Link>
-            </div>
-        );
-    }
-    
-    // Si el producto es null pero no hay error ni carga (caso improbable)
-    if (!producto) {
-         return (
-            <div className="container py-5 text-center">
-                <h2>Producto no encontrado</h2>
-                <Link to="/productos" className="btn btn-primary">Volver a Productos</Link>
-            </div>
-        );
-    }
-
-    // --- RENDERIZADO (sin cambios, ahora usa el estado 'producto') ---
+    // Muestra el producto si todo salió bien
     return (
-        <main className="container py-5">
-            <div id="detalle-producto">
-                <div className="card-detalle row">
-                    <div className="col-md-6 img-container">
-                        <img src={process.env.PUBLIC_URL + producto.image} alt={producto.name} className="img-fluid" />
+        <main className="container detalle-producto py-5">
+            <div className="row">
+                <div className="col-md-6">
+                    <img src={getImageUrl(producto.image)} alt={producto.name} className="img-fluid" />
+                </div>
+                <div className="col-md-6">
+                    <h2 className="mb-3">{producto.name}</h2>
+                    <div className="rating mb-3">
+                        <span className="stars">{renderStars(producto.rating)}</span>
+                        <span className="reviews">({producto.reviews || 0} reseñas)</span>
                     </div>
-                    <div className="col-md-6 info">
-                        <h2>{producto.name}</h2>
-                        <p className="lead">${producto.price.toLocaleString('es-CL')} CLP</p>
-                        <p className="descripcion">{producto.description}</p>
-                        <button className="btn btn-success btn-lg" onClick={handleAddToCart}>
-                            Añadir al carrito
-                        </button>
-                    </div>
+                    <p className="descripcion">{producto.description}</p>
+                    <h3 className="precio my-4">${(producto.price || 0).toLocaleString('es-CL')}</h3>
+                    
+                    <button className="btn btn-primary btn-lg me-2" onClick={handleAddToCart}>
+                        Agregar al Carrito
+                    </button>
+                    <Link to="/productos" className="btn btn-outline-secondary btn-lg">
+                        Volver a la tienda
+                    </Link>
                 </div>
             </div>
         </main>
     );
 };
+
 export default DetalleProductoPage;
