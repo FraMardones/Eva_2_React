@@ -1,0 +1,96 @@
+/* ===== PRODUCTOS ===== */
+.productos {
+  padding: 60px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.productos h2 {
+  text-align: center;
+  margin-bottom: 40px;
+  font-size: 42px;
+  color: var(--color-primary);
+  text-shadow: 0 0 10px var(--color-secondary);
+}
+
+.grid-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+  /* ✅ Esto es clave: hace que todas las tarjetas en la misma fila se estiren a la misma altura. */
+  align-items: stretch;
+}
+
+.card {
+  background: var(--color-card-bg);
+  border: 1px solid #333;
+  border-radius: 12px;
+  text-align: center;
+  padding: 20px;
+  transition: 0.3s;
+  /* ✅ Convertimos la tarjeta en un contenedor flex vertical para controlar el espacio interior. */
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-neon);
+}
+
+.card img {
+  width: 100%;
+  height: 200px; /* Damos una altura fija a la imagen para mayor consistencia */
+  object-fit: contain;
+  background-color: #111;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+/* ✅ Nuevo: Este div agrupará el título y la descripción */
+.card .card-body {
+  /* Esta propiedad hace que esta sección crezca, empujando el resto del contenido hacia abajo. */
+  flex-grow: 1;
+}
+
+.card h6 {
+  font-size: 18px;
+  color: var(--color-secondary);
+  margin-bottom: 10px;
+}
+
+.card .descripcion {
+  font-size: 14px;
+  color: var(--color-text-alt);
+  margin-bottom: 10px;
+  min-height: 40px;
+}
+
+.card .precio {
+  font-weight: bold;
+  color: var(--color-primary);
+  font-size: 18px;
+  /* Quitamos el margin-top: auto de aquí porque ahora lo controla el .card-body */
+  margin-top: 10px; 
+}
+
+/* Para asegurar que el botón esté al final */
+.card .btn {
+    margin-top: 15px;
+}
+
+/* Estilos para el Rating */
+.rating {
+  font-size: 14px; /* Tamaño del texto */
+}
+
+.rating .stars {
+  color: #ffc107; /* Color amarillo/dorado para las estrellas */
+  margin-right: 5px; /* Espacio entre estrellas y texto */
+}
+
+.rating .reviews {
+  color: var(--color-text-alt); /* Color grisáceo para el número de reseñas */
+  font-size: 12px; /* Más pequeño que las estrellas */
+}
