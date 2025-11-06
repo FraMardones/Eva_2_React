@@ -1,38 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink, Link } from 'react-router-dom';
-import '../assets/css/admin.css'; // Importa los estilos del admin
-import 'bootstrap/dist/css/bootstrap.min.css'; // Importa Bootstrap para las tablas y botones
+import React, { useState, useEffect, useContext } from 'react';
+import { Outlet, NavLink, Link, Navigate } from 'react-router-dom';
+import '../assets/css/admin.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { CartContext } from '../context/CartContext';
 
 const AdminLayout = () => {
+    
+    // --- 1. TODOS LOS HOOKS VAN PRIMERO ---
+    
+    // Hook del Contexto
+    const { isAuthenticated, usuario } = useContext(CartContext);
+    
+    // Hook del Menú
     const [menuOpen, setMenuOpen] = useState(false);
-    const [user, setUser] = useState(null);
+    
+    // Hook de Carga (para esperar al contexto)
+    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loggedUser = JSON.parse(localStorage.getItem("user"));
-        if (!loggedUser || loggedUser.role !== 'admin') {
-            // Si no es admin, lo saca del panel
-            window.location.href = process.env.PUBLIC_URL + '/login';
-        } else {
-            setUser(loggedUser);
-        }
-    }, []);
-
-    // Aplica una clase al body para el overlay del menú responsive
+    // Hook para el overlay del menú responsive (movido al inicio)
     useEffect(() => {
         document.body.classList.toggle('sidebar-open', menuOpen);
-        // Limpia la clase al desmontar el componente
         return () => {
             document.body.classList.remove('sidebar-open');
         };
     }, [menuOpen]);
 
-    if (!user) {
-        return <p>Verificando acceso...</p>; // Muestra algo mientras redirige
+    // Hook para esperar que el contexto se hidrate desde localStorage
+    useEffect(() => {
+        // Cuando el estado de isAuthenticated del contexto (que se lee 
+        // desde localStorage) cambia, dejamos de "cargar".
+        setLoading(false);
+    }, [isAuthenticated]); // Se ejecuta cuando isAuthenticated cambia
+
+    
+    // --- 2. LÓGICA DE REDIRECCIÓN (DESPUÉS DE LOS HOOKS) ---
+
+    // Si aún estamos esperando que el contexto lea de localStorage...
+    if (loading) {
+        // No mostramos nada todavía para evitar el "parpadeo"
+        return <div style={{textAlign: 'center', padding: '50px'}}>Verificando acceso...</div>;
     }
 
+    // Ahora que ya cargó, si no está autenticado, redirige a /login
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // Si está autenticado PERO no es ADMIN (el backend envía 'ADMIN')
+    if (usuario && usuario.role !== 'ADMIN') {
+        // Lo sacamos al Home.
+        return <Navigate to="/" replace />;
+    }
+
+    // Si pasó todas las verificaciones, es un Admin autenticado.
+    // Mostramos el layout.
     return (
-        <div className="admin-layout"> {/* Wrapper principal */}
-            <header> {/* Header del admin.css */}
+        <div className="admin-layout">
+            <header>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <div 
                         className={`menu-toggle ${menuOpen ? 'active' : ''}`} 
@@ -45,13 +69,11 @@ const AdminLayout = () => {
                 <Link to="/" className="btn btn-outline-light btn-sm">Volver a la Tienda</Link>
             </header>
 
-            {/* Contenedor para sidebar y contenido */}
             <div className="admin-layout-container"> 
                 <aside className={`sidebar ${menuOpen ? 'active' : ''}`}>
                     <nav className="nav">
-                        <ul className="list-unstyled"> {/* La clase 'flex-column' de bootstrap se elimina para usar la nuestra */}
+                        <ul className="list-unstyled">
                             <h5 className="mt-3">Gestión</h5>
-                            {/* Cierra el menú al hacer clic en un enlace */}
                             <li onClick={() => setMenuOpen(false)}>
                                 <NavLink to="/admin" className="nav-link" end>
                                     <span className="material-icons">dashboard</span> Dashboard
@@ -71,7 +93,6 @@ const AdminLayout = () => {
                     </nav>
                 </aside>
                 
-                {/* Contenido principal (sin fondo blanco) */}
                 <main className="admin-main-content">
                     <Outlet /> {/* Aquí se renderizan las páginas de admin */}
                 </main>

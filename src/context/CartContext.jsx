@@ -3,12 +3,19 @@ import React, { createContext, useState, useEffect } from 'react';
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+
+    // --- CÓDIGO DEL CARRITO (TU CÓDIGO ORIGINAL) ---
     const [cart, setCart] = useState([]);
 
     useEffect(() => {
         const savedCart = localStorage.getItem('carrito');
         if (savedCart) {
-            setCart(JSON.parse(savedCart));
+            try {
+                setCart(JSON.parse(savedCart));
+            } catch (error) {
+                console.error("Error al parsear carrito de localStorage", error);
+                setCart([]);
+            }
         }
     }, []);
 
@@ -47,8 +54,83 @@ export const CartProvider = ({ children }) => {
         setCart([]);
     };
 
+    // --- INICIO DE LA LÓGICA DE AUTENTICACIÓN AÑADIDA ---
+
+    // 1. Inicializamos el estado de autenticación desde localStorage
+    const [usuario, setUsuario] = useState(() => {
+        try {
+            const usuarioGuardado = localStorage.getItem('usuario');
+            return usuarioGuardado ? JSON.parse(usuarioGuardado) : null;
+        } catch (error) {
+            console.error("Error al parsear usuario de localStorage", error);
+            return null;
+        }
+    });
+    
+    const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+    
+    const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'));
+
+    /**
+     * Función de Login actualizada.
+     * Recibe el objeto { token, usuario } del backend.
+     */
+    const login = (authData) => {
+        if (authData && authData.token && authData.usuario) {
+            // 1. Actualizamos el estado de React
+            setUsuario(authData.usuario);
+            setToken(authData.token);
+            setIsAuthenticated(true);
+
+            // 2. Guardamos la sesión en localStorage
+            localStorage.setItem('usuario', JSON.stringify(authData.usuario));
+            localStorage.setItem('token', authData.token);
+
+            console.log("Usuario logueado y token guardado.");
+        } else {
+            console.error("Error: La respuesta de login no tiene el formato esperado.", authData);
+        }
+    };
+
+    /**
+     * Función de Logout actualizada.
+     * Limpia el estado y el localStorage.
+     */
+    const logout = () => {
+        // 1. Limpiamos el estado de React
+        setUsuario(null);
+        setToken(null);
+        setIsAuthenticated(false);
+
+        // 2. Limpiamos la sesión de localStorage
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('token');
+        
+        console.log("Usuario deslogueado y token borrado.");
+    };
+
+    // --- FIN DE LA LÓGICA DE AUTENTICACIÓN AÑADIDA ---
+
+
+    // --- VALOR DEL CONTEXTO (FUSIONADO) ---
+    // Exponemos tanto los valores del carrito como los de autenticación
+    const contextValue = {
+        // Carrito
+        cart,
+        addToCart,
+        removeFromCart,
+        clearCart,
+
+        // Autenticación
+        usuario,
+        token,
+        isAuthenticated,
+        login,
+        logout
+    };
+
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart }}>
+        <CartContext.Provider value={contextValue}>
             {children}
         </CartContext.Provider>
     );

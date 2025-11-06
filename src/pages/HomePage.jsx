@@ -4,11 +4,11 @@ import axios from 'axios';
 import CategoryFilter from '../components/CategoryFilter';
 import UserProfile from '../components/UserProfile';
 import { CartContext } from '../context/CartContext';
-
+import bannerImg from '../assets/banner2.png'; 
 import '../assets/css/banner.css';
 import '../assets/css/productos.css';
 
-// --- FUNCIÓN HELPER (LA MISMA QUE ANTES) ---
+// --- FUNCIÓN HELPER  ---
 const getImageUrl = (imagePath) => {
     if (!imagePath) {
         return process.env.PUBLIC_URL + '/img/default.png'; 
@@ -106,16 +106,13 @@ const HomePage = () => {
                             </div>
                             <Link to="/productos" className="btn btn-primary btn-lg animate-button">Explora nuestros productos</Link>
                         </div>
-                        {/* Esta es la columna de la imagen (con la corrección forzada) */}
-                        <div className="col-md-6 text-center">
-                            <img
-                                src={process.env.PUBLIC_URL + "/img/banner2.png"}
-                                alt="Banner Gamer"
-                                className="img-fluid animate-img banner-img"
-                                // Estilo en línea para forzar la visualización
-                                style={{ display: 'block', margin: 'auto' }} 
-                            />
-                        </div>
+                        <div className="col-md-6 text-center d-none d-md-block">
+                        <img
+                            src={bannerImg} 
+                            alt="Banner Gamer"
+                            className="img-fluid animate-img banner-img"
+                        />
+                    </div>
                     </div>
                 </div>
             </section>
