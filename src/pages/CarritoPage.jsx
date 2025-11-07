@@ -1,73 +1,126 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import '../assets/css/carrito.css';
+import axios from 'axios'; 
 
-// --- 1. AÑADE LA FUNCIÓN HELPER AQUÍ ---
 // (La misma que usamos en DetalleProductoPage)
 const getImageUrl = (imagePath) => {
     if (!imagePath) {
         return process.env.PUBLIC_URL + '/img/default.png'; 
     }
-    // Si la imagen es una URL de datos (data:image/...)
     if (imagePath.startsWith('data:image/')) {
         return imagePath;
     }
-    // Si es una ruta local (ej: /img/catan.png)
     return process.env.PUBLIC_URL + imagePath;
 };
 
 
 const CarritoPage = () => {
-    const { cart = [], addToCart, removeFromCart, clearCart } = useContext(CartContext); 
-    const [user, setUser] = useState(null);
+    // Obtenemos 'user', 'token' Y 'login' del Context.
+    const { 
+        cart = [], 
+        addToCart, 
+        removeFromCart, 
+        clearCart, 
+        user,  
+        token, 
+        login  
+    } = useContext(CartContext); 
+    
     const [discountApplied, setDiscountApplied] = useState(false);
 
-    useEffect(() => {
-        const loggedUser = JSON.parse(localStorage.getItem("user"));
-        if (loggedUser) {
-            setUser(loggedUser);
-        }
-    }, []);
-
-    // ... (Cálculos de subtotal, total, etc. sin cambios)
     const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const discountPercentage = 0.10; // 10%
     const total = discountApplied ? subtotal * (1 - discountPercentage) : subtotal;
 
-    // ... (Función handleRedeemPoints sin cambios)
-    const handleRedeemPoints = () => {
+    // FUNCIÓN CANJEAR PUNTOS (handleRedeemPoints) - CONECTADA A LA API
+    const handleRedeemPoints = async () => {
         const pointsNeeded = 500; 
-        if (user && user.points >= pointsNeeded && !discountApplied) {
-            const updatedUser = { ...user, points: user.points - pointsNeeded };
-            localStorage.setItem("user", JSON.stringify(updatedUser));
-            setUser(updatedUser); 
+
+        if (!user || !token) {
+            alert("Debes iniciar sesión para canjear puntos.");
+            return;
+        }
+        if (user.points < pointsNeeded) {
+            alert(`Necesitas ${pointsNeeded} puntos para canjear. Tienes ${user.points}.`);
+            return;
+        }
+        if (discountApplied) {
+            alert("Ya has aplicado un descuento.");
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                'http://localhost:8080/api/usuarios/me/sumar-puntos',
+                (pointsNeeded * -1), // Enviamos -500
+                {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        // --- ¡CAMBIO CLAVE AQUÍ! ---
+                        'Content-Type': 'text/plain' 
+                    } 
+                }
+            );
+
+            login(response.data, token); // Actualizamos el usuario global
             setDiscountApplied(true);
             alert(`¡${pointsNeeded} puntos canjeados! Descuento del ${discountPercentage * 100}% aplicado.`);
-        } else if (discountApplied) {
-            alert("Ya has aplicado un descuento.");
-        } else {
-            alert(`Necesitas ${pointsNeeded} puntos para canjear.`);
+
+        } catch (err) {
+            console.error("Error al canjear puntos:", err);
+            alert("Hubo un error al conectar con el servidor para canjear tus puntos.");
         }
     };
 
-    // ... (Función handlePay sin cambios)
-    const handlePay = () => {
+    // FUNCIÓN PAGAR (handlePay) - CONECTADA A LA API
+    const handlePay = async () => {
         if (cart.length === 0) {
             alert("Tu carrito está vacío.");
             return;
         }
-        if (user) {
-            const pointsEarned = Math.floor(total / 1000); 
-            const updatedUser = { ...user, points: (user.points || 0) + pointsEarned };
-            localStorage.setItem("user", JSON.stringify(updatedUser));
-            alert(`¡Gracias por tu compra! Has ganado ${pointsEarned} puntos.`);
+        
+        let pointsEarned = 0;
+        let alertMessage = '¡Gracias por tu compra!';
+
+        if (user && token) {
+            pointsEarned = Math.floor(total / 1000); // 1 punto por cada $1000
+            
+            if (pointsEarned > 0) {
+                try {
+                    const response = await axios.post(
+                        'http://localhost:8080/api/usuarios/me/sumar-puntos',
+                        pointsEarned, // Enviamos los puntos ganados (ej: 50)
+                        {
+                            headers: { 
+                                'Authorization': `Bearer ${token}`,
+                                // --- ¡CAMBIO CLAVE AQUÍ! ---
+                                'Content-Type': 'text/plain'
+                            }
+                        }
+                    );
+                    
+                    login(response.data, token); // Actualizamos el usuario global
+                    alertMessage = `¡Gracias por tu compra! Has ganado ${pointsEarned} puntos.`;
+                
+                } catch (err) {
+                    console.error("Error al sumar puntos:", err);
+                    alertMessage = "¡Gracias por tu compra! (No se pudieron sumar tus puntos)";
+                }
+            } else {
+                 alertMessage = "¡Gracias por tu compra! (Total muy bajo para ganar puntos)";
+            }
+
         } else {
-            alert('¡Gracias por tu compra!');
+            alertMessage = '¡Gracias por tu compra!';
         }
+        
+        alert(alertMessage);
         clearCart();
         setDiscountApplied(false); 
     };
 
+    // --- RENDERIZADO (Sin cambios) ---
     return (
         <main className="container py-5">
             <h1 className="mb-4 text-center">🛒 Carrito de Compras</h1>
@@ -80,23 +133,17 @@ const CarritoPage = () => {
                         cart.map(item => (
                             <div key={item.code} className="carrito-item">
                                 <div className="d-flex align-items-center flex-grow-1">
-                                    
-                                    {/* ----- 2. ¡LA CORRECCIÓN ESTÁ AQUÍ! ----- */}
                                     <img 
-                                        // ANTERIOR: src={process.env.PUBLIC_URL + item.image} 
-                                        src={getImageUrl(item.image)} // CORREGIDO
+                                        src={getImageUrl(item.image)} 
                                         alt={item.name} 
                                         className="carrito-img" 
                                     />
-                                    {/* ----- FIN DE LA CORRECCIÓN ----- */}
-
                                     <div>
                                         <h6>{item.name}</h6>
                                         <p>Subtotal: ${(item.price * item.quantity).toLocaleString('es-CL')}</p>
                                     </div>
                                 </div>
                                 <div className="d-flex align-items-center gap-2">
-                                    {/* ... (Botones ➖ ➕ 🗑️ sin cambios) */}
                                     <button className="btn btn-sm btn-outline-secondary" onClick={() => removeFromCart(item.code, 1)}>➖</button>
                                     <span className="cantidad">{item.quantity}</span>
                                     <button className="btn btn-sm btn-outline-secondary" onClick={() => addToCart(item)}>➕</button>
@@ -108,7 +155,6 @@ const CarritoPage = () => {
                 </div>
                 <aside className="col-12 col-lg-4">
                     <div className="card p-3 sticky-top">
-                        {/* ... (Resumen del carrito sin cambios) */}
                         <h4>Resumen</h4>
                         <hr />
                         <p>Subtotal: ${subtotal.toLocaleString('es-CL')}</p>
