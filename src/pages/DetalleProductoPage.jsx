@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/api'; // <-- ¡CAMBIO 1: Importamos la api central!
 import { CartContext } from '../context/CartContext';
 import '../assets/css/detalle-producto.css'; //
 
@@ -29,8 +29,9 @@ const DetalleProductoPage = () => {
             try {
                 setLoading(true);
                 setError(null); 
-                // Corregido: usa 'code' en la URL
-                const response = await axios.get(`http://localhost:8080/api/productos/${code}`);
+                
+                // <-- ¡CAMBIO 2: Usamos 'api' y la URL corta!
+                const response = await api.get(`/api/productos/${code}`);
                 setProducto(response.data);
 
             } catch (err) {

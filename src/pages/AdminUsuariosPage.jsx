@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../api/api'; // <-- ¡CAMBIO 1: Importamos la api central!
 import { CartContext } from '../context/CartContext'; 
 import { regionesYcomunas } from '../data/regiones'; 
 
-const API_AUTH_URL = 'http://localhost:8080/api/auth';
-const API_USUARIOS_URL = 'http://localhost:8080/api/usuarios';
+// (Se eliminaron las constantes API_AUTH_URL y API_USUARIOS_URL)
 
 const AdminUsuariosPage = () => {
     const [usuarios, setUsuarios] = useState([]);
@@ -23,8 +22,8 @@ const AdminUsuariosPage = () => {
         role: 'USER',
         region: '',
         comuna: '',
-        points: 0, // <-- AÑADIDO
-        level: 1  // <-- AÑADIDO
+        points: 0, 
+        level: 1  
     });
     const [isEditing, setIsEditing] = useState(false);
     const [comunas, setComunas] = useState([]);
@@ -39,7 +38,8 @@ const AdminUsuariosPage = () => {
         
         setLoading(true);
         try {
-            const response = await axios.get(API_USUARIOS_URL, {
+            // <-- ¡CAMBIO 2: Usamos 'api' y la URL corta!
+            const response = await api.get('/api/usuarios', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             setUsuarios(response.data);
@@ -78,8 +78,8 @@ const AdminUsuariosPage = () => {
         setFormData({
             run: '', nombre: '', apellidos: '', email: '',
             password: '', fechaNac: '', role: 'USER', region: '', comuna: '',
-            points: 0, // <-- AÑADIDO
-            level: 1   // <-- AÑADIDO
+            points: 0, 
+            level: 1   
         });
     };
 
@@ -107,7 +107,8 @@ const AdminUsuariosPage = () => {
                     delete dataParaPut.password; 
                 }
                 
-                await axios.put(`${API_USUARIOS_URL}/${formData.email}`, dataParaPut, {
+                // <-- ¡CAMBIO 3: Usamos 'api' para PUT!
+                await api.put(`/api/usuarios/${formData.email}`, dataParaPut, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 alert("¡Usuario actualizado!");
@@ -124,8 +125,8 @@ const AdminUsuariosPage = () => {
                 return;
             }
             try {
-                // Usamos el endpoint de registro (que ahora asigna puntos por defecto)
-                await axios.post(`${API_AUTH_URL}/register`, usuarioData); 
+                // <-- ¡CAMBIO 4: Usamos 'api' para POST (registro)!
+                await api.post('/api/auth/register', usuarioData); 
                 alert("¡Usuario creado con éxito!");
                 handleCancelEdit(); 
                 await fetchUsuarios(); 
@@ -144,8 +145,8 @@ const AdminUsuariosPage = () => {
             ...usuario,
             fechaNac: fechaNacFormateada,
             password: '', 
-            points: usuario.points || 0, // <-- AÑADIDO
-            level: usuario.level || 1   // <-- AÑADIDO
+            points: usuario.points || 0, 
+            level: usuario.level || 1   
         });
         setComunas(regionesYcomunas[usuario.region] || []);
     };
@@ -156,7 +157,8 @@ const AdminUsuariosPage = () => {
             return;
         }
         try {
-            await axios.delete(`${API_USUARIOS_URL}/${email}`, {
+            // <-- ¡CAMBIO 5: Usamos 'api' para DELETE!
+            await api.delete(`/api/usuarios/${email}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             alert("Usuario eliminado");
@@ -170,6 +172,7 @@ const AdminUsuariosPage = () => {
     if (loading) return <h2 className="text-center py-5">Cargando Usuarios...</h2>;
     if (error) return <h2 className="text-center py-5" style={{ color: 'red' }}>{error}</h2>;
 
+    // ... (El JSX de renderizado no cambia)
     return (
         <div className="container py-3">
             <h3 className="mb-4">Administrar Usuarios</h3>
@@ -183,7 +186,7 @@ const AdminUsuariosPage = () => {
                             <th>RUN</th>
                             <th>Rol</th>
                             <th>Puntos</th>
-                            <th>Nivel</th> {/* <-- AÑADIDO */}
+                            <th>Nivel</th> 
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -199,7 +202,7 @@ const AdminUsuariosPage = () => {
                                     </span>
                                 </td>
                                 <td>{user.points}</td>
-                                <td>{user.level}</td> {/* <-- AÑADIDO */}
+                                <td>{user.level}</td> 
                                 <td>
                                     <button className="btn btn-success btn-sm me-2" onClick={() => handleEditClick(user)}>Editar</button>
                                     <button className="btn btn-danger btn-sm" onClick={() => handleDeleteClick(user.email)}>Eliminar</button>

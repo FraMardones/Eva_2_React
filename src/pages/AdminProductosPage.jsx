@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8080/api/productos';
+import api from '../api/api'; // <-- ¡CAMBIO 1: Importamos la api central!
 
 // Función para decidir si la imagen es una ruta o Base64
 const getImageUrl = (imagePath) => {
@@ -26,7 +24,8 @@ const AdminProductosPage = () => {
     const fetchProductos = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(API_URL);
+            // <-- ¡CAMBIO 2: Usamos 'api' y la URL corta!
+            const response = await api.get('/api/productos');
             setProductos(response.data);
             setError(null);
         } catch (err) {
@@ -62,14 +61,16 @@ const AdminProductosPage = () => {
 
         try {
             if (editingId) {
-                await axios.put(`${API_URL}/${editingId}`, newProduct);
+                // <-- ¡CAMBIO 3: Usamos 'api' para PUT!
+                await api.put(`/api/productos/${editingId}`, newProduct);
                 alert("Producto actualizado con éxito");
             } else {
                 if (productos.some(p => p.code === newProduct.code)) {
                     alert("¡El ID del producto ya existe!");
                     return;
                 }
-                await axios.post(API_URL, newProduct);
+                // <-- ¡CAMBIO 4: Usamos 'api' para POST!
+                await api.post('/api/productos', newProduct);
                 alert("Producto creado con éxito");
             }
             
@@ -87,7 +88,8 @@ const AdminProductosPage = () => {
             return;
         }
         try {
-            await axios.delete(`${API_URL}/${code}`);
+            // <-- ¡CAMBIO 5: Usamos 'api' para DELETE!
+            await api.delete(`/api/productos/${code}`);
             alert("Producto eliminado con éxito");
             await fetchProductos();
         } catch (err) {
@@ -135,6 +137,7 @@ const AdminProductosPage = () => {
     if (loading) return <h2 className="text-center py-5">Cargando...</h2>;
     if (error) return <h2 className="text-center py-5" style={{ color: 'red' }}>{error}</h2>;
 
+    // ... (El JSX de renderizado no cambia)
     return (
         <div className="container py-3">
             <h3 className="mb-4">Administrar Productos</h3>
@@ -169,9 +172,6 @@ const AdminProductosPage = () => {
 
             <h4>{editingId ? 'Editando Producto' : 'Agregar Nuevo Producto'}</h4>
             
-            {/* --- CORRECCIÓN AQUÍ ---
-                Añadimos la clase 'mt-3' (margin-top: 3)
-            --------------------------- */}
             <form onSubmit={handleSubmit} className="row g-3 p-3 admin-card mt-3">
                 <div className="col-md-3">
                     <label htmlFor="id" className="form-label">ID</label>
