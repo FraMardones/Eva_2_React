@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/api'; // <-- ¡CAMBIO 1: Importamos la api central!
 import { CartContext } from '../context/CartContext';
 import '../assets/css/productos.css'; 
 
@@ -33,7 +33,8 @@ const ProductosPage = () => {
         const fetchProductos = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://localhost:8080/api/productos');
+                // --- ¡CAMBIO 2: Usamos 'api' y la URL corta ---
+                const response = await api.get('/api/productos');
                 setProductos(response.data);
                 setError(null);
             } catch (err) {
@@ -72,7 +73,7 @@ const ProductosPage = () => {
                         <img src={getImageUrl(p.image)} alt={p.name || 'Producto'} />
                         
                         <div className="card-body">
-                             <h6>{p.name || 'Producto sin nombre'}</h6>
+                            <h6>{p.name || 'Producto sin nombre'}</h6>
                             <div className="rating mb-2">
                                 {/* 5. Corrección de Rating y Reviews */}
                                 <span className="stars">{renderStars(p.rating)}</span>
@@ -89,7 +90,7 @@ const ProductosPage = () => {
                         <div className="precio">${(p.price || 0).toLocaleString('es-CL')}</div>
                         
                         <div className="product-actions mt-auto">
-                             <button className="btn btn-primary mb-2 w-100" onClick={() => handleAddToCart(p)}>
+                            <button className="btn btn-primary mb-2 w-100" onClick={() => handleAddToCart(p)}>
                                 Agregar al Carrito
                             </button>
                             <Link to={`/producto/${p.code}`} className="btn btn-outline-light w-100">

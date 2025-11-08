@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'; // <-- 1. IMPORTAR useContext
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/api'; // <-- ¡CAMBIO! Importamos la api central
 import { regionesYcomunas } from '../data/regiones';
 import '../assets/css/login.css';
 import { CartContext } from '../context/CartContext'; // <-- 2. IMPORTAR EL CONTEXTO
@@ -65,8 +65,8 @@ const LoginPage = () => {
         e.preventDefault();
         if (validate()) {
             try {
-                // 1. Llamamos a la API de registro
-                const response = await axios.post('http://localhost:8080/api/auth/register', formData);
+                // 1. ¡CAMBIO! Llamamos a 'api' y usamos la URL corta
+                const response = await api.post('/api/auth/register', formData);
                 
                 // 2. Si el registro es exitoso (código 201)
                 const newUser = response.data; // El backend devuelve el usuario creado
@@ -117,8 +117,8 @@ const LoginPage = () => {
         }
 
         try {
-            // 1. Llamamos a la API de login
-            const response = await axios.post('http://localhost:8080/api/auth/login', {
+            // 1. ¡CAMBIO! Llamamos a 'api' y usamos la URL corta
+            const response = await api.post('/api/auth/login', {
                 email: email,
                 password: password
             });
@@ -175,31 +175,31 @@ const LoginPage = () => {
                     <form onSubmit={handleRegister} noValidate>
                         {/* ... (inputs de run, nombre, apellidos, email, password, fechaNac, referralCode sin cambios) ... */}
                         <input type="text" id="run" placeholder="RUN" value={formData.run} onChange={handleInputChange} />
-                        {errors.run && <span className="error">{errors.run}</span>}
+                        {errors.run && <span className="error">{errors.run}</span>}
 
-                        <input type="text" id="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleInputChange} />
-                        {errors.nombre && <span className="error">{errors.nombre}</span>}
-                        
-                        <input type="text" id="apellidos" placeholder="Apellidos" value={formData.apellidos} onChange={handleInputChange} />
-                        {errors.apellidos && <span className="error">{errors.apellidos}</span>}
+                        <input type="text" id="nombre" placeholder="Nombre" value={formData.nombre} onChange={handleInputChange} />
+                        {errors.nombre && <span className="error">{errors.nombre}</span>}
+                        
+                        <input type="text" id="apellidos" placeholder="Apellidos" value={formData.apellidos} onChange={handleInputChange} />
+                        {errors.apellidos && <span className="error">{errors.apellidos}</span>}
 
-                        <input type="email" id="email" placeholder="Correo electrónico" value={formData.email} onChange={handleInputChange} />
-                        {errors.email && <span className="error">{errors.email}</span>}
+                        <input type="email" id="email" placeholder="Correo electrónico" value={formData.email} onChange={handleInputChange} />
+                        {errors.email && <span className="error">{errors.email}</span>}
 
-                        <input type="password" id="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange} />
-                        {errors.password && <span className="error">{errors.password}</span>}
+                        <input type="password" id="password" placeholder="Contraseña" value={formData.password} onChange={handleInputChange} />
+                        {errors.password && <span className="error">{errors.password}</span>}
 
-                        <input type="date" id="fechaNac" value={formData.fechaNac} onChange={handleInputChange} />
-                        {errors.fechaNac && <span className="error">{errors.fechaNac}</span>}
-                        
-                        <input 
-                            type="text" 
-                            id="referralCode" 
-                            placeholder="Código de referido (opcional)" 
+                        <input type="date" id="fechaNac" value={formData.fechaNac} onChange={handleInputChange} />
+                        {errors.fechaNac && <span className="error">{errors.fechaNac}</span>}
+                        
+                        <input 
+                            type="text" 
+                            id="referralCode" 
+                            placeholder="Código de referido (opcional)" 
                             label="Código de referido (opcional)"
-                            value={formData.referralCode} 
-                            onChange={handleInputChange} 
-                        />
+                            value={formData.referralCode} 
+                            onChange={handleInputChange} 
+                        />
                         
                         <select id="role" value={formData.role} onChange={handleInputChange}>
                             <option value="">Selecciona tu rol</option>
@@ -210,19 +210,19 @@ const LoginPage = () => {
 
                         {/* ... (selects de region y comuna sin cambios) ... */}
                         <select id="region" value={formData.region} onChange={handleInputChange}>
-                            <option value="">Selecciona Región</option>
-                            {regionesYcomunas && Object.keys(regionesYcomunas).map(region => (
-                                <option key={region} value={region}>{region}</option>
-                            ))}
-                        </select>
+                            <option value="">Selecciona Región</option>
+                            {regionesYcomunas && Object.keys(regionesYcomunas).map(region => (
+                                <option key={region} value={region}>{region}</option>
+                            ))}
+                        </select>
 {errors.region && <span className="error">{errors.region}</span>}
 
 <select id="comuna" value={formData.comuna} onChange={handleInputChange} disabled={!formData.region}>
-                            <option value="">Selecciona Comuna</option>
-                            {comunas.map(comuna => (
-                                <option key={comuna} value={comuna}>{comuna}</option>
-                            ))}
-                        </select>
+                            <option value="">Selecciona Comuna</option>
+                            {comunas.map(comuna => (
+                                <option key={comuna} value={comuna}>{comuna}</option>
+                            ))}
+                        </select>
 {errors.comuna && <span className="error">{errors.comuna}</span>}
 
                         <button type="submit">Registrarse</button>

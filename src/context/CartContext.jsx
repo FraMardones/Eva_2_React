@@ -4,9 +4,24 @@ export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
 
-    // --- CÓDIGO DEL CARRITO (TU CÓDIGO ORIGINAL) ---
-    const [cart, setCart] = useState([]);
+    // --- CÓDIGO DEL CARRITO ---
+    // CAMBIO 1: Volvemos a inicializar el carrito desde localStorage
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem('carrito');
+        if (savedCart) {
+            try {
+                return JSON.parse(savedCart);
+            } catch (error) {
+                console.error("Error al parsear carrito de localStorage", error);
+                return [];
+            }
+        }
+        return [];
+    });
 
+    // CAMBIO 2: Este useEffect se ejecuta solo una vez (al cargar)
+    // Ya no es necesario porque el useState de arriba se encarga de la carga inicial.
+    /*
     useEffect(() => {
         const savedCart = localStorage.getItem('carrito');
         if (savedCart) {
@@ -18,10 +33,14 @@ export const CartProvider = ({ children }) => {
             }
         }
     }, []);
+    */
 
+    // CAMBIO 3: Volvemos a activar el useEffect que GUARDA el carrito
+    // cada vez que el estado 'cart' cambia.
     useEffect(() => {
         localStorage.setItem('carrito', JSON.stringify(cart));
     }, [cart]);
+    
 
     const addToCart = (product) => {
         setCart(prevCart => {
@@ -55,6 +74,7 @@ export const CartProvider = ({ children }) => {
     };
 
     // --- INICIO DE LA LÓGICA DE AUTENTICACIÓN AÑADIDA ---
+    // (Esta parte se mantiene igual)
 
     // 1. Inicializamos el estado de autenticación desde localStorage
     const [usuario, setUsuario] = useState(() => {

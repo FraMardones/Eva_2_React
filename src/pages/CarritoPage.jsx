@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import '../assets/css/carrito.css';
-import axios from 'axios'; 
+import api from '../api/api'; // <-- ¡CAMBIO 1: Importamos la api central!
 
 // (La misma que usamos en DetalleProductoPage)
 const getImageUrl = (imagePath) => {
@@ -16,14 +16,14 @@ const getImageUrl = (imagePath) => {
 
 
 const CarritoPage = () => {
-    // Obtenemos 'user', 'token' Y 'login' del Context.
+    // CAMBIO 1: Usar 'usuario'
     const { 
         cart = [], 
         addToCart, 
         removeFromCart, 
         clearCart, 
-        user,  
-        token, 
+        usuario,  
+        token, // <-- Mantenemos 'token' porque lo usa la función login()
         login  
     } = useContext(CartContext); 
     
@@ -37,12 +37,12 @@ const CarritoPage = () => {
     const handleRedeemPoints = async () => {
         const pointsNeeded = 500; 
 
-        if (!user || !token) {
+        if (!usuario || !token) {
             alert("Debes iniciar sesión para canjear puntos.");
             return;
         }
-        if (user.points < pointsNeeded) {
-            alert(`Necesitas ${pointsNeeded} puntos para canjear. Tienes ${user.points}.`);
+        if (usuario.points < pointsNeeded) {
+            alert(`Necesitas ${pointsNeeded} puntos para canjear. Tienes ${usuario.points}.`);
             return;
         }
         if (discountApplied) {
@@ -51,19 +51,15 @@ const CarritoPage = () => {
         }
 
         try {
-            const response = await axios.post(
-                'http://localhost:8080/api/usuarios/me/sumar-puntos',
-                (pointsNeeded * -1), // Enviamos -500
-                {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        // --- ¡CAMBIO CLAVE AQUÍ! ---
-                        'Content-Type': 'text/plain' 
-                    } 
-                }
+            // --- ¡CAMBIO 2: Usamos 'api', URL corta y sin headers! ---
+            const response = await api.post(
+                '/api/usuarios/me/sumar-puntos',
+                (pointsNeeded * -1) // Enviamos -500
+                // Ya no se necesita el objeto 'headers'
             );
 
-            login(response.data, token); // Actualizamos el usuario global
+            // CAMBIO 3: Corregir llamada a login (esto ya estaba bien)
+            login({ token: token, usuario: response.data }); 
             setDiscountApplied(true);
             alert(`¡${pointsNeeded} puntos canjeados! Descuento del ${discountPercentage * 100}% aplicado.`);
 
@@ -83,27 +79,24 @@ const CarritoPage = () => {
         let pointsEarned = 0;
         let alertMessage = '¡Gracias por tu compra!';
 
-        if (user && token) {
+        if (usuario && token) {
             pointsEarned = Math.floor(total / 1000); // 1 punto por cada $1000
             
             if (pointsEarned > 0) {
                 try {
-                    const response = await axios.post(
-                        'http://localhost:8080/api/usuarios/me/sumar-puntos',
-                        pointsEarned, // Enviamos los puntos ganados (ej: 50)
-                        {
-                            headers: { 
-                                'Authorization': `Bearer ${token}`,
-                                // --- ¡CAMBIO CLAVE AQUÍ! ---
-                                'Content-Type': 'text/plain'
-                            }
-                        }
+                    // --- ¡CAMBIO 4: Usamos 'api', URL corta y sin headers! ---
+                    const response = await api.post(
+                        '/api/usuarios/me/sumar-puntos',
+                        pointsEarned // Enviamos los puntos ganados (ej: 50)
+                        // Ya no se necesita el objeto 'headers'
                     );
                     
-                    login(response.data, token); // Actualizamos el usuario global
+                    // CAMBIO 3: Corregir llamada a login (esto ya estaba bien)
+                    login({ token: token, usuario: response.data }); 
                     alertMessage = `¡Gracias por tu compra! Has ganado ${pointsEarned} puntos.`;
                 
                 } catch (err) {
+                    // Este es el error que estás viendo
                     console.error("Error al sumar puntos:", err);
                     alertMessage = "¡Gracias por tu compra! (No se pudieron sumar tus puntos)";
                 }
@@ -120,7 +113,7 @@ const CarritoPage = () => {
         setDiscountApplied(false); 
     };
 
-    // --- RENDERIZADO (Sin cambios) ---
+    // --- RENDERIZADO (Con 'usuario') ---
     return (
         <main className="container py-5">
             <h1 className="mb-4 text-center">🛒 Carrito de Compras</h1>
@@ -163,7 +156,8 @@ const CarritoPage = () => {
                         )}
                         <p className="fw-bold fs-5">Total: <strong>${total.toLocaleString('es-CL')}</strong></p>
 
-                        {user && user.points >= 500 && !discountApplied && (
+                        {/* CAMBIO 1: Usar 'usuario' */}
+                        {usuario && usuario.points >= 500 && !discountApplied && (
                             <button className="btn btn-info w-100 mb-2" onClick={handleRedeemPoints}>
                                 Canjear 500 Puntos por {discountPercentage * 100}% Dcto.
                             </button>
