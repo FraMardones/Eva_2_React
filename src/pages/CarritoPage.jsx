@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
 import '../assets/css/carrito.css';
-import api from '../api/api'; // <-- ¡CAMBIO 1: Importamos la api central!
+import api from '../api/api'; 
 
 // (La misma que usamos en DetalleProductoPage)
 const getImageUrl = (imagePath) => {
@@ -16,14 +16,13 @@ const getImageUrl = (imagePath) => {
 
 
 const CarritoPage = () => {
-    // CAMBIO 1: Usar 'usuario'
     const { 
         cart = [], 
         addToCart, 
         removeFromCart, 
         clearCart, 
         usuario,  
-        token, // <-- Mantenemos 'token' porque lo usa la función login()
+        token, 
         login  
     } = useContext(CartContext); 
     
@@ -51,14 +50,19 @@ const CarritoPage = () => {
         }
 
         try {
-            // --- ¡CAMBIO 2: Usamos 'api', URL corta y sin headers! ---
+            // --- ¡ESTA ES LA CORRECCIÓN! ---
+            // Añadimos el objeto de configuración para forzar el Content-Type a JSON
             const response = await api.post(
                 '/api/usuarios/me/sumar-puntos',
-                (pointsNeeded * -1) // Enviamos -500
-                // Ya no se necesita el objeto 'headers'
+                (pointsNeeded * -1), // El dato (ej: -500)
+                { // El objeto de configuración
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
+            // -------------------------------
 
-            // CAMBIO 3: Corregir llamada a login (esto ya estaba bien)
             login({ token: token, usuario: response.data }); 
             setDiscountApplied(true);
             alert(`¡${pointsNeeded} puntos canjeados! Descuento del ${discountPercentage * 100}% aplicado.`);
@@ -84,19 +88,23 @@ const CarritoPage = () => {
             
             if (pointsEarned > 0) {
                 try {
-                    // --- ¡CAMBIO 4: Usamos 'api', URL corta y sin headers! ---
+                    // --- ¡ESTA ES LA CORRECCIÓN! ---
+                    // Añadimos el objeto de configuración para forzar el Content-Type a JSON
                     const response = await api.post(
                         '/api/usuarios/me/sumar-puntos',
-                        pointsEarned // Enviamos los puntos ganados (ej: 50)
-                        // Ya no se necesita el objeto 'headers'
+                        pointsEarned, // El dato (ej: 50)
+                        { // El objeto de configuración
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }
                     );
+                    // -------------------------------
                     
-                    // CAMBIO 3: Corregir llamada a login (esto ya estaba bien)
                     login({ token: token, usuario: response.data }); 
                     alertMessage = `¡Gracias por tu compra! Has ganado ${pointsEarned} puntos.`;
                 
                 } catch (err) {
-                    // Este es el error que estás viendo
                     console.error("Error al sumar puntos:", err);
                     alertMessage = "¡Gracias por tu compra! (No se pudieron sumar tus puntos)";
                 }
@@ -113,7 +121,7 @@ const CarritoPage = () => {
         setDiscountApplied(false); 
     };
 
-    // --- RENDERIZADO (Con 'usuario') ---
+    // --- RENDERIZADO (Sin cambios) ---
     return (
         <main className="container py-5">
             <h1 className="mb-4 text-center">🛒 Carrito de Compras</h1>
@@ -156,7 +164,6 @@ const CarritoPage = () => {
                         )}
                         <p className="fw-bold fs-5">Total: <strong>${total.toLocaleString('es-CL')}</strong></p>
 
-                        {/* CAMBIO 1: Usar 'usuario' */}
                         {usuario && usuario.points >= 500 && !discountApplied && (
                             <button className="btn btn-info w-100 mb-2" onClick={handleRedeemPoints}>
                                 Canjear 500 Puntos por {discountPercentage * 100}% Dcto.
