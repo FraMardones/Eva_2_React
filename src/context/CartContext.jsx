@@ -106,6 +106,9 @@ export const CartProvider = ({ children }) => {
             localStorage.setItem('usuario', JSON.stringify(authData.usuario));
             localStorage.setItem('token', authData.token);
 
+             // 3. Disparamos un evento para que UserProfile.jsx se actualice
+            window.dispatchEvent(new Event("userUpdate"));
+
             console.log("Usuario logueado y token guardado.");
         } else {
             console.error("Error: La respuesta de login no tiene el formato esperado.", authData);
@@ -128,12 +131,7 @@ export const CartProvider = ({ children }) => {
         
         console.log("Usuario deslogueado y token borrado.");
     };
-
-    // --- FIN DE LA LÓGICA DE AUTENTICACIÓN AÑADIDA ---
-
-
-    // --- VALOR DEL CONTEXTO (FUSIONADO) ---
-    // Exponemos tanto los valores del carrito como los de autenticación
+    
     const contextValue = {
         // Carrito
         cart,

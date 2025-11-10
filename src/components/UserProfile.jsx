@@ -1,17 +1,40 @@
-// src/components/UserProfile.jsx
-
 import React, { useState, useEffect } from 'react';
 
 const UserProfile = () => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        // Carga los datos del usuario desde localStorage cuando el componente se monta
-        const loggedUser = JSON.parse(localStorage.getItem("user"));
+        // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+        // Cambiamos "user" por "usuario" para que coincida con el CartContext
+        const loggedUser = JSON.parse(localStorage.getItem("usuario")); 
+        
         if (loggedUser) {
             setUser(loggedUser);
         }
-    }, []);
+    }, []); // Se ejecuta solo una vez
+
+    // --- ¡MEJORA AÑADIDA! ---
+    // Escuchamos por cambios en localStorage para actualizar los puntos en tiempo real
+    // (cuando se ganan o canjean en el carrito)
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const updatedUser = JSON.parse(localStorage.getItem("usuario"));
+            if (updatedUser) {
+                setUser(updatedUser);
+            }
+        };
+
+        // 'storage' es un evento que se dispara cuando localStorage cambia en otra pestaña
+        // 'userUpdate' es un evento personalizado que podemos disparar nosotros mismos
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('userUpdate', handleStorageChange); // Escuchamos nuestro evento
+
+        // Limpiamos los listeners al desmontar
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('userUpdate', handleStorageChange);
+        };
+    }, []); // Se suscribe una sola vez
 
     // Si no hay ningún usuario conectado, este componente no muestra nada.
     if (!user) {
