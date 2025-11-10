@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
@@ -23,6 +22,10 @@ import AdminHomePage from './pages/AdminHomePage';
 import AdminProductosPage from './pages/AdminProductosPage';
 import AdminUsuariosPage from './pages/AdminUsuariosPage'; 
 
+// --- ¡NUEVA IMPORTACIÓN! ---
+// Este es el componente que arregla el scroll
+import ScrollToTop from './components/ScrollToTop';
+
 // Importa los CSS
 import './assets/css/styles.css';
 import './assets/css/admin.css'; // Importa el CSS de admin
@@ -31,6 +34,11 @@ function App() {
   return (
     <CartProvider>
       <BrowserRouter basename={process.env.PUBLIC_URL}>
+        
+        {/* --- ¡COMPONENTE AÑADIDO! --- */}
+        {/* Esto fuerza el scroll a ir arriba en cada cambio de página */}
+        <ScrollToTop /> 
+        
         <Routes>
           {/* --- Rutas Públicas (usan PublicLayout) --- */}
           <Route element={<PublicLayout />}>

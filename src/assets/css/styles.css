@@ -150,7 +150,6 @@ nav ul#menu li a.active {
 .menu-toggle.active span:nth-child(2) { opacity: 0; }
 .menu-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-/* ... (Resto de tu CSS 'styles.css' sin cambios) ... */
 
 /* ===== FOOTER ===== */
 footer {
@@ -167,11 +166,16 @@ footer {
   margin: 0 auto;
   padding: 0 20px;
 }
-.footer-section { text-align: left; }
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra horizontalmente el contenido */
+  text-align: center; /* Centra el texto */
+}
 .footer-section h3 { color: var(--color-primary); margin-bottom: 1rem; font-family: 'Orbitron', monospace; text-shadow: none; }
 .footer-section p { color: var(--color-text-alt); margin-bottom: 10px; }
 .footer-section i { margin-right: 10px; color: var(--color-primary); }
-.social-share { display: flex; gap: 1rem; justify-content: start; margin: 1rem 0; }
+.social-share { display: flex; gap: 1rem; justify-content: center; margin: 1rem 0; width: 100%;}
 .social-btn { padding: 0.5rem; border-radius: 50%; background: rgba(30, 144, 255, 0.2); color: #1E90FF; text-decoration: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
 .social-btn:hover { background: #1E90FF; color: #000; }
 
