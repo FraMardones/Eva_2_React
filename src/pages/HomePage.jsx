@@ -129,7 +129,7 @@ const HomePage = () => {
                              </div>
                              <Link to="/productos" className="btn btn-primary btn-lg animate-button">Explora nuestros productos</Link>
                          </div>
-                         <div className="col-md-6 text-center d-none d-md-block">
+                         <div className="col-md-6 text-center d-md-block">
                          <img
                              src={bannerImg} 
                              alt="Banner Gamer"
