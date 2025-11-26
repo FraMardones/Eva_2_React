@@ -125,11 +125,11 @@ const HomePage = () => {
                              <div className="mb-3 animate-text-delay3">
                                  <span className="material-icons align-middle">local_shipping</span> Envío a todo Chile<br />
                                  <span className="material-icons align-middle">sports_esports</span> Amplia variedad de productos<br />
-                                 <span className="material-icons align-middle">star</span> Calidad y confianza garantizadas
+                                 <span className="material-icons align-middle">star</span> Calidad y confianza garantizada
                              </div>
                              <Link to="/productos" className="btn btn-primary btn-lg animate-button">Explora nuestros productos</Link>
                          </div>
-                         <div className="col-md-6 text-center d-none d-md-block">
+                         <div className="col-md-6 text-center d-md-block">
                          <img
                              src={bannerImg} 
                              alt="Banner Gamer"
@@ -168,7 +168,7 @@ const HomePage = () => {
                         onChange={(e) => setPriceFilter(e.target.value)}
                         value={priceFilter}
                     >
-                        <option value="">Filtrar por precio</option>
+                        <option value="">Filtro por precio</option>
                         <option value="0-30000">$0 - $30.000</option>
                         <option value="30000-100000">$30.000 - $100.000</option>
                         <option value="100000-500000">$100.000 - $500.000</option>
