@@ -92,8 +92,8 @@ const DetalleProductoPage = () => {
                     <div className="col-md-6 info">
                         <h2>{producto.name}</h2>
                         <p className="lead">${(producto.price || 0).toLocaleString('es-CL')} CLP</p>
-                        {/* CAMBIO CLAVE PARA DEPURACIÓN: Usamos <pre> para mostrar el texto tal cual llega */}
-                        <pre className="descripcion">{producto.description}</pre> 
+                        {/* CORREGIDO: Volvemos a la etiqueta <p> */}
+                        <p className="descripcion">{producto.description}</p>
                         <button className="btn btn-success btn-lg" onClick={handleAddToCart}>
                             Añadir al carrito
                         </button>
