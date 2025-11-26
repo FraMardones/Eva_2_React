@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext, useRef }  from 'react'; // <-- 1. IMPORTAMOS useRef
+import React, { useState, useEffect, useRef } from 'react'; 
 import { Link } from 'react-router-dom';
 import api from '../api/api.js'; 
-import CategoryFilter from '../components/CategoryFilter.jsx'; // <-- CORREGIDO
-import UserProfile from '../components/UserProfile.jsx';       // <-- CORREGIDO
-import { CartContext } from '../context/CartContext.jsx';    // <-- CORREGIDO
+import CategoryFilter from '../components/CategoryFilter.jsx';
+import UserProfile from '../components/UserProfile.jsx';      
+// import { CartContext } from '../context/CartContext.jsx'; 
 import bannerImg from '../assets/banner2.png'; 
 import '../assets/css/banner.css';
 import '../assets/css/productos.css';
@@ -103,17 +103,17 @@ const HomePage = () => {
         setTimeout(() => {
             if (productosRef.current) {
                 productosRef.current.scrollIntoView({
-                    behavior: 'smooth', // Animación suave
-                    block: 'start'      // Se alinea con la parte de arriba de la sección
+                    behavior: 'smooth', 
+                    block: 'start'      
                 });
             }
-        }, 100); // Pequeña espera para que React re-renderice
+        }, 100); 
     };
 
 
     return (
         <div>
-            {/* --- Sección del Banner (sin cambios) --- */}
+            {/* --- Sección del Banner --- */}
             <section className="banner py-5 bg-dark text-light">
                 {/* ... (contenido del banner) ... */}
                  <div className="container">
@@ -129,11 +129,13 @@ const HomePage = () => {
                              </div>
                              <Link to="/productos" className="btn btn-primary btn-lg animate-button">Explora nuestros productos</Link>
                          </div>
-                         <div className="col-md-6 text-center d-md-block">
+                         {/* Contenedor de la imagen: Simplificamos clases de visibilidad */}
+                         <div className="col-md-6 text-center"> 
                          <img
                              src={bannerImg} 
                              alt="Banner Gamer"
-                             className="img-fluid animate-img banner-img"
+                             className="img-fluid banner-img" 
+                             /* CORREGIDO: Comentario movido fuera del atributo 'className' */
                          />
                      </div>
                      </div>
@@ -195,7 +197,7 @@ const HomePage = () => {
                                         </div>
                                        
                                         <p className="descripcion">
-                                            {(product.description || '').substring(0, 80)}...
+                                            {(product.description || '').substring(0, 150)}... {/* Descripción extendida */}
                                         </p>
                                     </div>
                                     <div className="precio">${(product.price || 0).toLocaleString('es-CL')}</div>

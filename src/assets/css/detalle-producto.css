@@ -67,6 +67,13 @@
   color: #ccc;
   line-height: 1.6;
   margin-bottom: 25px;
+  /* --- CORRECCIÓN FINAL: Usando !important para anular estilos externos --- */
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  line-clamp: none !important;
+  -webkit-box-orient: unset !important;
 }
 
 .cantidad-container {
